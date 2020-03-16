@@ -16,5 +16,12 @@
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
-
+    <style name="CourseTitle" parent="@style/TextAppearance.AppCompat.Medium">
+        <item name="android:textColor">@color/Pluralsight</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="addfab" parent="@style/Widget.MaterialComponents.FloatingActionButton">
+        <item name="android:src">@drawable/ic_add_24dp</item>
+        <item name="android:tint">@color/cardview_light_background</item>
+    </style>
 </resources>
