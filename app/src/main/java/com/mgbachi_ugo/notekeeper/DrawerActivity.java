@@ -2,6 +2,7 @@ package com.mgbachi_ugo.notekeeper;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -45,20 +46,20 @@ public class DrawerActivity extends AppCompatActivity {
     private CourseRecyclerAdapter mCourseRecyclerAdapter;
     private GridLayoutManager mCourseLayoutManager;
     private NavigationView mNavigationView;
+    private NoteKeeperOpenHelper mDbOpenHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)  {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_drawer);
-//        updateNavHeader();
         final Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        mDbOpenHelper = new NoteKeeperOpenHelper(this);
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 startActivity(new Intent(DrawerActivity.this, MainActivity.class));
-
             }
         });
         PreferenceManager.setDefaultValues(this, R.xml.messages_preferences, false);
@@ -66,7 +67,7 @@ public class DrawerActivity extends AppCompatActivity {
         PreferenceManager.setDefaultValues(this, R.xml.sync_preferences, false);
         mDrawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
-//        updateNavHeader();
+
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
         mAppBarConfiguration = new AppBarConfiguration.Builder(
@@ -96,6 +97,12 @@ public class DrawerActivity extends AppCompatActivity {
         });
 
 
+    }
+
+    @Override
+    protected void onDestroy() {
+        mDbOpenHelper.close();
+        super.onDestroy();
     }
 
     private void handlesend() {
@@ -144,6 +151,7 @@ public class DrawerActivity extends AppCompatActivity {
     }
 
     private void initializeDisplayContent() {
+        DataManager.loadFromDatabase(mDbOpenHelper);
         mRecyclerItems = (RecyclerView) findViewById(R.id.list_items);
         mNotesLayoutManager = new LinearLayoutManager(this);
         mCourseLayoutManager = new GridLayoutManager(this,getResources().getInteger(R.integer.course_grid_span));
@@ -153,12 +161,10 @@ public class DrawerActivity extends AppCompatActivity {
 
         List<CourseInfo> course = DataManager.getInstance().getCourses();
         mCourseRecyclerAdapter = new CourseRecyclerAdapter(this, course);
-
         displayNotes();
     }
 
     private void displayNotes() {
-
         mRecyclerItems.setLayoutManager(mNotesLayoutManager);
         mRecyclerItems.setAdapter(mNoteRecyclerAdapter);
         selectNavigationMenuItem(R.id.nav_notes);
