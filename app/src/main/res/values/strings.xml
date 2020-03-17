@@ -20,4 +20,40 @@
     <string name="textview">TextView</string>
     <string name="share">Share</string>
     <string name="send">Send</string>
+    <string name="title_activity_settings">Settings</string>
+
+    <!-- Preference Titles -->
+    <string name="messages_header">Messages</string>
+    <string name="sync_header">Sync</string>
+
+    <!-- Messages Preferences -->
+    <string name="signature_title">Your Name</string>
+    <string name="reply_title">Default reply action</string>
+    <string name="user_display_name">user_display_name</string>
+    <string name="pref_title_display_name">pref_title_display_name</string>
+    <string name="pref_title_email_address">Your Email</string>
+    <string name="pref_user_social_network">Favorite social network</string>
+    <string-array name="pref_entries_favorite_social">
+        <item>GooglePlus</item>
+        <item>Facebook</item>
+        <item>Twitter</item>
+    </string-array>
+    <string-array name="pref_values_favorite_social">
+        <item>https://plus.google.com/</item>
+        https://facebook.com/
+        https://twitter.com/
+    </string-array>
+
+    <!-- Sync Preferences -->
+    <string name="sync_title">Sync email periodically</string>
+    <string name="attachment_title">Download incoming attachments</string>
+    <string name="attachment_summary_on">Automatically download attachments for incoming emails
+    </string>
+    <string name="attachment_summary_off">Only download attachments when manually requested</string>
+    <string name="pref_user_name">Your Name</string>
+    <string name="user_display_email">user_email_address</string>
+    <string name="user_display_favorite_social">user_favorite_social</string>
+
+
+
 </resources>

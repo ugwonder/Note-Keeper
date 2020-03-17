@@ -1,10 +1,12 @@
 package com.mgbachi_ugo.notekeeper;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import android.view.MenuItem;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -23,29 +25,32 @@ import androidx.drawerlayout.widget.DrawerLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.Menu;
+import android.widget.TextView;
 
 import java.util.List;
 
 public class DrawerActivity extends AppCompatActivity {
-    private NoteRecyclerAdapter mNoteRecyclerAdapter;
 
+    private NoteRecyclerAdapter mNoteRecyclerAdapter;
     private AppBarConfiguration mAppBarConfiguration;
     private DrawerLayout mDrawer;
     private RecyclerView mRecyclerItems;
     private LinearLayoutManager mNotesLayoutManager;
     private CourseRecyclerAdapter mCourseRecyclerAdapter;
     private GridLayoutManager mCourseLayoutManager;
-
+    private NavigationView mNavigationView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)  {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_drawer);
+//        updateNavHeader();
         final Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         FloatingActionButton fab = findViewById(R.id.fab);
@@ -56,9 +61,12 @@ public class DrawerActivity extends AppCompatActivity {
 
             }
         });
+        PreferenceManager.setDefaultValues(this, R.xml.messages_preferences, false);
+        PreferenceManager.setDefaultValues(this, R.xml.header_preferences, false);
+        PreferenceManager.setDefaultValues(this, R.xml.sync_preferences, false);
         mDrawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
-
+//        updateNavHeader();
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
         mAppBarConfiguration = new AppBarConfiguration.Builder(
@@ -77,14 +85,29 @@ public class DrawerActivity extends AppCompatActivity {
                 } else if (destination.getId() == R.id.nav_courses){
                     displaycourses();
                 } else if(destination.getId() == R.id.nav_share) {
-                    handleSelection(R.string.share);
+//                    handleSelection(R.string.share);
+                    handleshare();
                 } else if(destination.getId() == R.id.nav_send) {
                     handleSelection(R.string.send);
+                    handlesend();
                 }
                 mDrawer.closeDrawer(GravityCompat.START);
             }
         });
 
+
+    }
+
+    private void handlesend() {
+        View view = findViewById(R.id.list_items);
+        Snackbar.make(view,
+                PreferenceManager.getDefaultSharedPreferences(this).getString("user_display_name", "") +
+                PreferenceManager.getDefaultSharedPreferences(this).getString("user_email_address", ""), Snackbar.LENGTH_SHORT).show();
+    }
+
+    private void handleshare() {
+        View view = findViewById(R.id.list_items);
+        Snackbar.make(view, "Share to - " + PreferenceManager.getDefaultSharedPreferences(this).getString("user_favorite_social", ""), Snackbar.LENGTH_SHORT).show();
     }
 
     private void displaycourses() {
@@ -104,6 +127,20 @@ public class DrawerActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         mNoteRecyclerAdapter.notifyDataSetChanged();
+        updateNavHeader();
+
+    }
+
+    private void updateNavHeader() {
+        View headerView = mNavigationView.getHeaderView(0);
+        TextView textUserName = headerView.findViewById(R.id.text_user_name);
+        TextView textUserEmail = headerView.findViewById(R.id.text_user_email);
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+
+        String userName = pref.getString("user_display_name", "");
+        String userEmail = pref.getString("user_email_address", "");
+        textUserName.setText(userName);
+        textUserEmail.setText(userEmail);
     }
 
     private void initializeDisplayContent() {
@@ -118,23 +155,36 @@ public class DrawerActivity extends AppCompatActivity {
         mCourseRecyclerAdapter = new CourseRecyclerAdapter(this, course);
 
         displayNotes();
-
     }
 
     private void displayNotes() {
 
         mRecyclerItems.setLayoutManager(mNotesLayoutManager);
         mRecyclerItems.setAdapter(mNoteRecyclerAdapter);
-
         selectNavigationMenuItem(R.id.nav_notes);
     }
 
     private void selectNavigationMenuItem(int id) {
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        Menu menu = navigationView.getMenu();
+        mNavigationView = (NavigationView) findViewById(R.id.nav_view);
+        Menu menu = mNavigationView.getMenu();
         menu.findItem(id).setChecked(true);
     }
 
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        // Handles the action bar item click here. the action bar
+        // will automatically handle clicks on the Home up button.
+        // as long specify a parent activity in the manifest.xml.
+
+        int id = item.getItemId();
+        // noinspection simplifiable statment
+        if (id == R.id.action_settings) {
+            startActivity(new Intent(this, SettingsActivity.class));
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
