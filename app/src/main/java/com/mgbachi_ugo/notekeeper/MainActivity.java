@@ -2,6 +2,8 @@ package com.mgbachi_ugo.notekeeper;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -15,23 +17,32 @@ import android.widget.Spinner;
 
 import java.util.List;
 
+import static com.mgbachi_ugo.notekeeper.NoteKeeperDatabaseContract.*;
+
 public class MainActivity extends AppCompatActivity {
-    public final static String NOTE_POSITION = "com.mgbachi_ugo.notekeeper.NOTE_POSITION";
+    public final static String NOTE_ID = "com.mgbachi_ugo.notekeeper.NOTE_ID";
     public static final String ORIGINAL_NOTE_COURSE_ID = "com.mgbachi_ugo.notekeeper.ORIGINAL_NOTE_COURSE_ID";
     public static final String ORIGINAL_NOTE_TITLE = "com.mgbachi_ugo.notekeeper.ORIGINAL_NOTE_TITLE";
     public static final String ORIGINAL_NOTE_TEXT = "com.mgbachi_ugo.notekeeper.ORIGINAL_NOTE_TEXT";
 
-    public static final int POSITION_NOT_SET = -1;
+    public static final int ID_NOT_SET = -1;
     private NoteInfo mNote;
     private int mNotePosition;
     private boolean mIsCancelling;
     private String mOriginalCourseId;
     private String mOriginalNoteTitle;
-    private String mOriginalNotetext;
+    private String mOriginalNoteText;
     private boolean mIsNewNote;
     private Spinner mSpinnerCourses;
     private EditText mTextNoteTitle;
     private EditText mTextNoteText;
+    private NoteKeeperOpenHelper mDbOpenHelper;
+    private Cursor mNoteCursor;
+    private int mCourseIdPos;
+    private int mNoteTitle;
+    private int mNoteText;
+    private int mNoteId;
+
 
 
     @Override
@@ -40,8 +51,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        mDbOpenHelper = new NoteKeeperOpenHelper(this);
 
-        mSpinnerCourses = (Spinner) findViewById(R.id.spinner_courses);
+        mSpinnerCourses = findViewById(R.id.spinner_courses);
 
         List<CourseInfo> courses = DataManager.getInstance().getCourses();
         ArrayAdapter<CourseInfo> adapterCourses = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, courses);
@@ -53,16 +65,46 @@ public class MainActivity extends AppCompatActivity {
         } else {
             restoreOriginalNoteValues(savedInstanceState);
         }
-        mTextNoteTitle = (EditText) findViewById(R.id.text_note_title);
-        mTextNoteText = (EditText) findViewById(R.id.text_note_text);
+        mTextNoteTitle = findViewById(R.id.text_note_title);
+        mTextNoteText = findViewById(R.id.text_note_text);
         if (!mIsNewNote)
-            displayNote(mSpinnerCourses, mTextNoteTitle, mTextNoteText);
+            loadNoteData();
+    }
+
+    @Override
+    protected void onDestroy() {
+        mDbOpenHelper.close();
+        super.onDestroy();
+    }
+
+    private void loadNoteData() {
+        SQLiteDatabase db = mDbOpenHelper.getReadableDatabase();
+        String courseId = "android_intents";
+        String titleStart = "dynamic";
+
+        String selection = NoteInfoEntry._ID + " = ?";
+
+        String[] selectionArgs = {Integer.toString(mNoteId)};
+
+        String[] noteColumns = {
+                NoteInfoEntry.COLUMN_COURSE_ID,
+                NoteInfoEntry.COLUMN_NOTE_TITLE,
+                NoteInfoEntry.COLUMN_NOTE_TEXT
+        };
+        mNoteCursor = db.query(NoteInfoEntry.TABLE_NAME, noteColumns,
+                selection, selectionArgs, null, null, null);
+        mCourseIdPos = mNoteCursor.getColumnIndex(NoteInfoEntry.COLUMN_COURSE_ID);
+        mNoteTitle = mNoteCursor.getColumnIndex(NoteInfoEntry.COLUMN_NOTE_TITLE);
+        mNoteText = mNoteCursor.getColumnIndex(NoteInfoEntry.COLUMN_NOTE_TEXT);
+        mNoteCursor.moveToNext();
+        displayNote();
+
     }
 
     private void restoreOriginalNoteValues(Bundle savedInstanceState) {
         mOriginalCourseId = savedInstanceState.getString(ORIGINAL_NOTE_COURSE_ID);
         mOriginalNoteTitle = savedInstanceState.getString(ORIGINAL_NOTE_TITLE);
-        mOriginalNotetext = savedInstanceState.getString(ORIGINAL_NOTE_TEXT);
+        mOriginalNoteText = savedInstanceState.getString(ORIGINAL_NOTE_TEXT);
     }
 
     @Override
@@ -83,7 +125,7 @@ public class MainActivity extends AppCompatActivity {
         CourseInfo course = DataManager.getInstance().getCourse(mOriginalCourseId);
         mNote.setCourse(course);
         mNote.setTitle(mOriginalNoteTitle);
-        mNote.setText(mOriginalNotetext);
+        mNote.setText(mOriginalNoteText);
 
     }
 
@@ -99,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         mOriginalCourseId = mNote.getCourse().getCourseId();
         mOriginalNoteTitle = mNote.getTitle();
-        mOriginalNotetext = mNote.getText();
+        mOriginalNoteText = mNote.getText();
     }
 
     @Override
@@ -107,26 +149,30 @@ public class MainActivity extends AppCompatActivity {
         super.onSaveInstanceState(outState);
         outState.putString(ORIGINAL_NOTE_COURSE_ID, mOriginalCourseId);
         outState.putString(ORIGINAL_NOTE_TITLE, mOriginalNoteTitle);
-        outState.putString(ORIGINAL_NOTE_TEXT, mOriginalNotetext);
+        outState.putString(ORIGINAL_NOTE_TEXT, mOriginalNoteText);
     }
 
-    private void displayNote(Spinner spinnerCourses, EditText textNoteTitle, EditText textNoteText) {
+    private void displayNote() {
+        String courseId = mNoteCursor.getString(mCourseIdPos);
+        String noteTitle = mNoteCursor.getString(mNoteTitle);
+        String noteText = mNoteCursor.getString(mNoteText);
         List<CourseInfo> courses = DataManager.getInstance().getCourses();
-        int courseIndex = courses.indexOf(mNote.getCourse());
-        spinnerCourses.setSelection(courseIndex);
-        textNoteText.setText(mNote.getText());
-        textNoteTitle.setText(mNote.getTitle());
+        CourseInfo course = DataManager.getInstance().getCourse(courseId);
+        int courseIndex = courses.indexOf(course);
+        mSpinnerCourses.setSelection(courseIndex);
+        mTextNoteText.setText(noteText);
+        mTextNoteTitle.setText(noteTitle);
     }
 
 
     private void readDisplayValues() {
         Intent intent = getIntent();
-        int position = intent.getIntExtra(NOTE_POSITION, POSITION_NOT_SET);
-        mIsNewNote = position == POSITION_NOT_SET;
+        mNoteId = intent.getIntExtra(NOTE_ID, ID_NOT_SET);
+        mIsNewNote = mNoteId == ID_NOT_SET;
         if (mIsNewNote){
             createNewNote();
         } else {
-            mNote = DataManager.getInstance().getNotes().get(position);
+            mNote = DataManager.getInstance().getNotes().get(mNoteId);
         }
     }
 
@@ -179,8 +225,7 @@ public class MainActivity extends AppCompatActivity {
         ++mNotePosition;
         mNote = DataManager.getInstance().getNotes().get(mNotePosition);
         saveOriginalNoteValues();
-        displayNote(mSpinnerCourses, mTextNoteTitle, mTextNoteText);
-
+        displayNote();
     }
 
     private void sendEmail() {
@@ -192,6 +237,5 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra(Intent.EXTRA_SUBJECT, Subject);
         intent.putExtra(Intent.EXTRA_TEXT, text);
         startActivity(intent);
-
     }
 }

@@ -2,7 +2,6 @@ package com.mgbachi_ugo.notekeeper;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -84,13 +83,13 @@ public class DrawerActivity extends AppCompatActivity {
                 if(destination.getId() == R.id.nav_notes) {
                     initializeDisplayContent();
                 } else if (destination.getId() == R.id.nav_courses){
-                    displaycourses();
+                    displayCourse();
                 } else if(destination.getId() == R.id.nav_share) {
 //                    handleSelection(R.string.share);
-                    handleshare();
+                    handleShare();
                 } else if(destination.getId() == R.id.nav_send) {
-                    handleSelection(R.string.send);
-                    handlesend();
+//                    handleSelection(R.string.send);
+                    handleSend();
                 }
                 mDrawer.closeDrawer(GravityCompat.START);
             }
@@ -105,19 +104,19 @@ public class DrawerActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
-    private void handlesend() {
+    private void handleSend() {
         View view = findViewById(R.id.list_items);
         Snackbar.make(view,
                 PreferenceManager.getDefaultSharedPreferences(this).getString("user_display_name", "") +
                 PreferenceManager.getDefaultSharedPreferences(this).getString("user_email_address", ""), Snackbar.LENGTH_SHORT).show();
     }
 
-    private void handleshare() {
+    private void handleShare() {
         View view = findViewById(R.id.list_items);
         Snackbar.make(view, "Share to - " + PreferenceManager.getDefaultSharedPreferences(this).getString("user_favorite_social", ""), Snackbar.LENGTH_SHORT).show();
     }
 
-    private void displaycourses() {
+    private void displayCourse() {
         mRecyclerItems.setLayoutManager(mCourseLayoutManager);
         mRecyclerItems.setAdapter(mCourseRecyclerAdapter);
         selectNavigationMenuItem(R.id.nav_courses);
@@ -152,7 +151,7 @@ public class DrawerActivity extends AppCompatActivity {
 
     private void initializeDisplayContent() {
         DataManager.loadFromDatabase(mDbOpenHelper);
-        mRecyclerItems = (RecyclerView) findViewById(R.id.list_items);
+        mRecyclerItems = findViewById(R.id.list_items);
         mNotesLayoutManager = new LinearLayoutManager(this);
         mCourseLayoutManager = new GridLayoutManager(this,getResources().getInteger(R.integer.course_grid_span));
 
@@ -171,7 +170,7 @@ public class DrawerActivity extends AppCompatActivity {
     }
 
     private void selectNavigationMenuItem(int id) {
-        mNavigationView = (NavigationView) findViewById(R.id.nav_view);
+        mNavigationView = findViewById(R.id.nav_view);
         Menu menu = mNavigationView.getMenu();
         menu.findItem(id).setChecked(true);
     }
@@ -205,6 +204,5 @@ public class DrawerActivity extends AppCompatActivity {
         return NavigationUI.navigateUp(navController, mAppBarConfiguration)
                 || super.onSupportNavigateUp();
     }
-
 
 }
