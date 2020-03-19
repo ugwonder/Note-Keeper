@@ -26,7 +26,7 @@ public class NoteListActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_note_list);
+        setContentView(R.layout.fragment_notes);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -48,13 +48,14 @@ public class NoteListActivity extends AppCompatActivity {
         mNoteRecyclerAdapter.notifyDataSetChanged();
     }
 
+
+
     private void initializeDisplayContent() {
-        final RecyclerView recyclerNotes = (RecyclerView) findViewById(R.id.list_notes);
+        final RecyclerView recyclerNotes = findViewById(R.id.list_items);
         final LinearLayoutManager notesLayoutManager = new LinearLayoutManager(this);
         recyclerNotes.setLayoutManager(notesLayoutManager);
 
-        List<NoteInfo> notes = DataManager.getInstance().getNotes();
-        mNoteRecyclerAdapter = new NoteRecyclerAdapter(this, notes);
+         mNoteRecyclerAdapter = new NoteRecyclerAdapter(this, null);
         recyclerNotes.setAdapter(mNoteRecyclerAdapter);
     }
 
