@@ -22,6 +22,7 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
+import com.mgbachi_ugo.notekeeper.NoteKeeperDatabaseContract.CourseInfoEntry;
 import com.mgbachi_ugo.notekeeper.NoteKeeperDatabaseContract.NoteInfoEntry;
 
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -141,12 +142,19 @@ public class DrawerActivity extends AppCompatActivity {
     private void loadNotes() {
     SQLiteDatabase db = mDbOpenHelper.getReadableDatabase();
         final String[] noteColumns = {
+                NoteInfoEntry.getQName(NoteInfoEntry._ID),
                 NoteInfoEntry.COLUMN_NOTE_TITLE,
-                NoteInfoEntry.COLUMN_COURSE_ID,
-                NoteInfoEntry._ID};
-        String noteOderBy = NoteInfoEntry.COLUMN_COURSE_ID + "," + NoteInfoEntry.COLUMN_NOTE_TITLE;
-        mNoteCursor = db.query(NoteInfoEntry.TABLE_NAME, noteColumns,
+                CourseInfoEntry.COLUMN_COURSE_TITLE};
+        String noteOderBy = CourseInfoEntry.COLUMN_COURSE_TITLE + "," + NoteInfoEntry.COLUMN_NOTE_TITLE;
+        //note_info join course_info on note_info.course_id = course_info.course_id
+        String tablesWithJoin = NoteInfoEntry.TABLE_NAME + " JOIN " +
+                CourseInfoEntry.TABLE_NAME + " ON " +
+                NoteInfoEntry.getQName(NoteInfoEntry.COLUMN_COURSE_ID)  + " = " +
+                CourseInfoEntry.getQName(CourseInfoEntry.COLUMN_COURSE_ID);
+        mNoteCursor = db.query(tablesWithJoin, noteColumns,
                 null, null, null, null, noteOderBy);
+
+
         mNoteRecyclerAdapter.changeCursor(mNoteCursor);
 
     }

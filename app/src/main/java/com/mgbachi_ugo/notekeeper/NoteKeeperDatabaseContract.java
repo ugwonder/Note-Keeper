@@ -10,6 +10,17 @@ public final class NoteKeeperDatabaseContract {
         public static final String TABLE_NAME = "course_info";
         public static final String COLUMN_COURSE_ID = "course_id";
         public static final String COLUMN_COURSE_TITLE = "course_title";
+
+        //Create Index Course_info_index1 on course_info(course_title)
+        public static final String INDEX1 = TABLE_NAME + "_index1";
+        public static final String SQL_CREATE_INDEX1 =
+                " CREATE INDEX " + INDEX1 + " ON " + TABLE_NAME +
+                        "(" + COLUMN_COURSE_TITLE + ")";
+
+        public static final String getQName (String columnName){
+            return TABLE_NAME + "." +columnName;
+        }
+
         //Create table course_info (course_id, course_title)
         public static String SQL_CREATE_TABLE =
                 "CREATE TABLE " + TABLE_NAME + " (" +
@@ -22,6 +33,19 @@ public final class NoteKeeperDatabaseContract {
         public static final String COLUMN_COURSE_ID = "course_id";
         public static final String COLUMN_NOTE_TITLE = "note_title";
         public static final String COLUMN_NOTE_TEXT = "note_text";
+
+        //Create Index Course_info_index1 on course_info(course_title)
+        public static final String INDEX1 = TABLE_NAME + "_index1";
+        public static final String SQL_CREATE_INDEX1 =
+                " CREATE INDEX " + INDEX1 + " ON " + TABLE_NAME +
+                        "(" + COLUMN_NOTE_TITLE + ")";
+
+
+
+        public static  final String getQName (String columnName) {
+            return TABLE_NAME + "." + columnName;
+        }
+
         //create table note_info (note_text, note_title, course_id
 
         public static String SQL_CREATE_TABLE =
